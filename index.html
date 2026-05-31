@@ -40,13 +40,14 @@
   .note-alias{font-size:12px;color:var(--text3);font-family:var(--mono);margin-top:6px;letter-spacing:.06em;min-height:18px;}
 
   /* scale info bar */
-  .scale-bar{background:var(--surface2);border:0.5px solid var(--border);border-radius:4px;padding:.625rem 1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .scale-bar{background:var(--surface2);border:0.5px solid var(--border);border-radius:4px;padding:.625rem 1rem;margin-bottom:1rem;display:flex;flex-direction:column;gap:8px;}
+  .scale-bar-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
   .scale-name{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;}
   .scale-notes{display:flex;gap:4px;flex-wrap:wrap;}
   .scale-dot{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:2px;border:0.5px solid var(--border2);color:var(--text3);transition:all .3s;}
   .scale-dot.done{background:rgba(71,255,184,.15);border-color:var(--correct);color:var(--correct);}
   .scale-dot.current{background:rgba(232,255,71,.12);border-color:var(--accent);color:var(--accent);}
-  .scale-progress{font-family:var(--mono);font-size:11px;color:var(--text3);white-space:nowrap;}
+  .scale-progress{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text2);white-space:nowrap;}
 
   /* shape selector */
   .shape-row{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;}
@@ -147,9 +148,11 @@
       <button class="shape-btn" onclick="selectShape('D')" id="sh-D">D</button>
     </div>
     <div class="scale-bar">
-      <span class="scale-name" id="scale-name">C Shape — C Major</span>
+      <div class="scale-bar-top">
+        <span class="scale-name" id="scale-name">C Shape — C Major</span>
+        <span class="scale-progress" id="scale-progress">0/7</span>
+      </div>
       <div class="scale-notes" id="scale-dots"></div>
-      <span class="scale-progress" id="scale-progress">0/7</span>
     </div>
     <div class="fretboard-wrap">
       <svg class="fretboard-svg" id="fretboard-svg" viewBox="0 0 480 150" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -188,20 +191,20 @@
     <div class="cooldown-track"><div class="cooldown-fill" id="cooldown-fill"></div></div>
   </div>
 
-  <!-- Status -->
+  <!-- Status (hidden in fretboard mode) -->
   <div class="status-bar" id="status-bar">
     <span style="font-size:16px;">◦</span><span>ยังไม่ได้เปิดไมค์</span>
   </div>
 
   <!-- Buttons -->
-  <div class="btn-row">
+  <div class="btn-row" id="btn-row">
     <button class="btn btn-accent" onclick="rollNote()" id="btn-roll">⟳ ROLL</button>
     <button class="btn" onclick="startListening()" id="btn-start">● REC</button>
     <button class="btn btn-stop" onclick="stopListening()" id="btn-stop" style="display:none;grid-column:2;">■ STOP</button>
   </div>
 
-  <!-- Score -->
-  <div class="score-row">
+  <!-- Score (hidden in fretboard mode) -->
+  <div class="score-row" id="score-row">
     <div class="score-card"><div class="score-num" id="sc-correct">0</div><div class="score-lbl">ถูก</div></div>
     <div class="score-card"><div class="score-num" id="sc-total">0</div><div class="score-lbl">รวม</div></div>
     <div class="score-card"><div class="score-num" id="sc-pct">—</div><div class="score-lbl">แม่น</div></div>
@@ -368,8 +371,21 @@ function setMode(m) {
   document.getElementById('tab-'+m).classList.add('active');
 
   const isScale = m==='scale';
-  document.getElementById('scale-ui').style.display  = isScale ? 'block' : 'none';
-  document.getElementById('btn-roll').style.display  = isScale ? 'none'  : 'flex';
+  document.getElementById('scale-ui').style.display   = isScale ? 'block' : 'none';
+  document.getElementById('btn-roll').style.display   = isScale ? 'none'  : 'flex';
+  document.getElementById('status-bar').style.display = isScale ? 'none'  : 'flex';
+  document.getElementById('score-row').style.display  = isScale ? 'none'  : 'grid';
+
+  // REC button: full width when no ROLL button beside it (scale mode)
+  const btnStart = document.getElementById('btn-start');
+  const btnStop  = document.getElementById('btn-stop');
+  if(isScale){
+    btnStart.style.gridColumn = '1 / -1';
+    btnStop.style.gridColumn  = '1 / -1';
+  } else {
+    btnStart.style.gridColumn = '';
+    btnStop.style.gridColumn  = '2';
+  }
 
   resetScore();
   clearCooldown();
